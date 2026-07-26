@@ -1,0 +1,13 @@
+# AkitosGambling configuration
+# All keys below are read by ConfigManager.java. Restart or /ag reload after editing.
+
+slots:
+  min-bet: 5.0
+  max-bet: 500.0
+  cooldown-seconds: 3
+
+roulette:
+  min-bet: 5.0
+  max-bet: 1000.0
+  cooldown-seconds: 6
+  spin-duration-seconds: 5

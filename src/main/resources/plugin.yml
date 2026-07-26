@@ -5,6 +5,7 @@ api-version: '1.21'
 author: Akito_Sekuna
 description: Casino-style gambling plugin for the Akitos network. Includes slots and roulette.
 depend: [AkitosCore]
+softdepend: [Vault, AkitosVault]
 
 commands:
   akitosgambling:
