@@ -13,6 +13,7 @@ import com.akito_sekuna.gambling.slots.SlotsCommand;
 import com.akito_sekuna.gambling.slots.SlotsConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -20,7 +21,7 @@ import java.io.File;
 public class Main extends JavaPlugin implements AkitosAddon {
 
     private static Main instance;
-    private ICoreAPI coreAPI;
+    private static ICoreAPI coreAPI;
 
     private ConfigManager configManager;
     private SlotsConfig slotsConfig;
@@ -35,7 +36,17 @@ public class Main extends JavaPlugin implements AkitosAddon {
     public ConfigManager getConfigManager() { return configManager; }
     public SlotsConfig getSlotsConfig() { return slotsConfig; }
     public GameHistoryManager getHistoryManager() { return historyManager; }
-    public ICoreAPI getCoreAPI() { return coreAPI; }
+
+    // --- Static Lazy Init Getter ---
+    public static ICoreAPI getCoreAPI() {
+        if (coreAPI == null) {
+            RegisteredServiceProvider<ICoreAPI> provider = Bukkit.getServicesManager().getRegistration(ICoreAPI.class);
+            if (provider != null) {
+                coreAPI = provider.getProvider();
+            }
+        }
+        return coreAPI;
+    }
 
     // --- AkitosAddon ---
 
@@ -55,7 +66,9 @@ public class Main extends JavaPlugin implements AkitosAddon {
     }
 
     @Override
-    public void onCoreShutdown() {}
+    public void onCoreShutdown() {
+        this.coreAPI = null;
+    }
 
     // --- Lifecycle ---
 

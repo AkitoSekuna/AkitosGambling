@@ -1,11 +1,10 @@
 name: AkitosGambling
-version: 21.2.0
+version: 21.2.1
 main: com.akito_sekuna.gambling.Main
 api-version: '1.21'
 author: Akito_Sekuna
 description: Casino-style gambling plugin for the Akitos network. Includes slots and roulette.
-depend: [AkitosCore]
-softdepend: [Vault, AkitosVault]
+depend: [AkitosCore, AkitosVault, Vault]
 
 commands:
   akitosgambling:

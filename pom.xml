@@ -6,7 +6,7 @@
 
     <groupId>com.akito_sekuna</groupId>
     <artifactId>AkitosGambling</artifactId>
-    <version>21.2.0</version>
+    <version>21.2.1</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
