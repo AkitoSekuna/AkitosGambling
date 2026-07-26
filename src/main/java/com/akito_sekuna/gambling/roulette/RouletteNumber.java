@@ -1,4 +1,3 @@
 package com.akito_sekuna.gambling.roulette;
 
-public class RouletteNumber {
-}
+public record RouletteNumber(int number, String color) {}

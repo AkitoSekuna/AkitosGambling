@@ -1,4 +1,3 @@
 package com.akito_sekuna.gambling.slots;
 
-public class SlotSymbol {
-}
+public record SlotSymbol(String name, String emoji, double weight, double multiplier) {}

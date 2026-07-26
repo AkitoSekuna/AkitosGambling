@@ -1,0 +1,25 @@
+name: AkitosGambling
+version: 21.2.0
+main: com.akito_sekuna.gambling.Main
+api-version: '1.21'
+author: Akito_Sekuna
+description: Casino-style gambling plugin for the Akitos network. Includes slots and roulette.
+depend: [AkitosCore]
+
+commands:
+  akitosgambling:
+    description: AkitosGambling main command
+    aliases: [ag]
+    usage: /akitosgambling [reload|info|history|unflag]
+    permission: akitosgambling.admin
+  slots:
+    description: Open the slot machine
+    usage: /slots
+  roulette:
+    description: Open the roulette table
+    usage: /roulette
+
+permissions:
+  akitosgambling.admin:
+    description: Access to AkitosGambling admin commands
+    default: op
