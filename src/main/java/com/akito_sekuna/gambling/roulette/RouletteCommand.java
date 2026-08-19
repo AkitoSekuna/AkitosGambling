@@ -11,13 +11,19 @@ public class RouletteCommand implements CommandExecutor {
 
     private final Main plugin;
 
-    public RouletteCommand(Main plugin) { this.plugin = plugin; }
+    public RouletteCommand(Main plugin) {
+        this.plugin = plugin;
+    }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
                              @NotNull String label, @NotNull String[] args) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage("This command can only be used by players!");
+            return true;
+        }
+        if (plugin.getCoreAPI() == null) {
+            player.sendMessage("§cAkitosCore is not available. Try again in a moment.");
             return true;
         }
         RouletteMenu.open(player, plugin);

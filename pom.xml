@@ -31,7 +31,7 @@
         <dependency>
             <groupId>com.akito_sekuna</groupId>
             <artifactId>AkitosCore</artifactId>
-            <version>21.2.0</version>
+            <version>21.2.1</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
