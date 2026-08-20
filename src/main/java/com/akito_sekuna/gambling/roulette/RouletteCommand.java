@@ -1,6 +1,7 @@
 package com.akito_sekuna.gambling.roulette;
 
 import com.akito_sekuna.gambling.Main;
+import com.akito_sekuna.gambling.slots.SlotsMenu;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;

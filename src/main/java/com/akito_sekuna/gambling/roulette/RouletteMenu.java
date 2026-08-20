@@ -1,4 +1,13 @@
-    private static ItemStack makeBalanceItem(Player player, Main plugin) {
+import com.akito_sekuna.gambling.Main;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+
+import java.util.List;
+
+private static ItemStack makeBalanceItem(Player player, Main plugin) {
         double balance = 0.0;
         if (plugin != null && plugin.getCoreAPI() != null) {
             balance = plugin.getCoreAPI().getEconomy().getBalance(player.getUniqueId());
@@ -14,3 +23,6 @@
         }
         return item;
     }
+
+void main() {
+}
