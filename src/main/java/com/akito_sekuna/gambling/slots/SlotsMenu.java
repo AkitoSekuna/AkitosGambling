@@ -2,6 +2,10 @@ package com.akito_sekuna.gambling.slots;
 
 import com.akito_sekuna.gambling.Main;
 import com.akito_sekuna.gambling.utils.GameRecord;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -10,6 +14,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,8 +22,9 @@ import java.util.UUID;
 
 public class SlotsMenu {
 
-    public static final String TITLE = "§6§lSlot Machine";
+    public static final Component TITLE = Component.text("Slot Machine", NamedTextColor.GOLD).decorate(TextDecoration.BOLD);
 
+    private static final double BET_STEP = 2.0;
     private static final Map<UUID, Boolean> spinning = new HashMap<>();
     private static final Map<UUID, Double> betAmounts = new HashMap<>();
 
@@ -42,10 +48,10 @@ public class SlotsMenu {
     }
 
     public static void build(Inventory menu, Player player, Main plugin) {
-        for (int i = 0; i < 27; ++i) menu.setItem(i, makePane(Material.GRAY_STAINED_GLASS_PANE, "§8"));
-        menu.setItem(10, makeReel("?"));
-        menu.setItem(13, makeReel("?"));
-        menu.setItem(16, makeReel("?"));
+        for (int i = 0; i < 27; ++i) menu.setItem(i, makePane(Material.GRAY_STAINED_GLASS_PANE, Component.text("")));
+        menu.setItem(10, makeUnrevealedReel());
+        menu.setItem(13, makeUnrevealedReel());
+        menu.setItem(16, makeUnrevealedReel());
         menu.setItem(22, makeSpinButton(player, plugin));
         menu.setItem(0, makeBalanceItem(player, plugin));
         menu.setItem(8, makeBetItem(player, plugin));
@@ -57,12 +63,12 @@ public class SlotsMenu {
             return;
         }
         if (spinning.getOrDefault(player.getUniqueId(), false)) {
-            player.sendActionBar("§cAlready spinning!");
+            player.sendActionBar(Component.text("Already spinning!", NamedTextColor.RED));
             return;
         }
         double balance = plugin.getCoreAPI().getEconomy().getBalance(player.getUniqueId());
         if (balance < bet) {
-            player.sendActionBar("§cNot enough balance!");
+            player.sendActionBar(Component.text("Not enough balance!", NamedTextColor.RED));
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
             return;
         }
@@ -87,35 +93,48 @@ public class SlotsMenu {
                 showResult(player, menu, result, bet, plugin);
                 return;
             }
-            menu.setItem(10, makeReel(plugin.getSlotsConfig().getRandom().emoji()));
-            menu.setItem(13, makeReel(plugin.getSlotsConfig().getRandom().emoji()));
-            menu.setItem(16, makeReel(plugin.getSlotsConfig().getRandom().emoji()));
+            menu.setItem(10, makeReel(plugin.getSlotsConfig().getRandom()));
+            menu.setItem(13, makeReel(plugin.getSlotsConfig().getRandom()));
+            menu.setItem(16, makeReel(plugin.getSlotsConfig().getRandom()));
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 0.3f, 1f + (tick[0] * 0.02f));
             tick[0]++;
         }, 0L, 2L);
     }
 
     private static void showResult(Player player, Inventory menu, SlotsGame.SpinResult result, double bet, Main plugin) {
-        menu.setItem(10, makeReel(result.reels()[0].emoji()));
-        menu.setItem(13, makeReel(result.reels()[1].emoji()));
-        menu.setItem(16, makeReel(result.reels()[2].emoji()));
+        menu.setItem(10, makeReel(result.reels()[0]));
+        menu.setItem(13, makeReel(result.reels()[1]));
+        menu.setItem(16, makeReel(result.reels()[2]));
 
         if (result.win()) {
             plugin.getCoreAPI().getEconomy().give(player.getUniqueId(), result.payout());
+            Component subtitle = Component.text("+" + String.format("%.0f", result.payout()), NamedTextColor.YELLOW);
             if (result.payout() >= bet * 10) {
-                player.sendTitle("§b§lJACKPOT!", "§e+" + String.format("%.1f", result.payout()), 10, 60, 20);
+                showTitle(player,
+                        Component.text("JACKPOT!", NamedTextColor.AQUA).decorate(TextDecoration.BOLD),
+                        subtitle);
                 player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
             } else {
-                player.sendTitle("§a§lWIN!", "§e+" + String.format("%.1f", result.payout()), 10, 60, 20);
+                showTitle(player,
+                        Component.text("WIN!", NamedTextColor.GREEN).decorate(TextDecoration.BOLD),
+                        subtitle);
                 player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
             }
         } else {
-            player.sendTitle("§c§lNO MATCH", "§7Better luck next time!", 10, 60, 20);
+            showTitle(player,
+                    Component.text("NO MATCH", NamedTextColor.RED).decorate(TextDecoration.BOLD),
+                    Component.text("Better luck next time!", NamedTextColor.GRAY));
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 0.8f);
         }
 
         menu.setItem(0, makeBalanceItem(player, plugin));
+        plugin.getGamesPlayedTracker().record("slots");
         plugin.getHistoryManager().record(player.getUniqueId(), GameRecord.of("slots", bet, result.payout()));
+    }
+
+    private static void showTitle(Player player, Component title, Component subtitle) {
+        player.showTitle(Title.title(title, subtitle,
+                Title.Times.times(Duration.ofMillis(500L), Duration.ofMillis(3000L), Duration.ofMillis(1000L))));
     }
 
     public static void adjustBet(Player player, Inventory menu, boolean increase, Main plugin) {
@@ -124,16 +143,16 @@ public class SlotsMenu {
         double current = betAmounts.getOrDefault(player.getUniqueId(), min);
 
         if (increase) {
-            double newAmount = Math.min(current + min, max);
+            double newAmount = Math.min(current + BET_STEP, max);
             double balance = plugin.getCoreAPI().getEconomy().getBalance(player.getUniqueId());
             if (balance < newAmount) {
-                player.sendActionBar("§cNot enough balance to raise bet!");
+                player.sendActionBar(Component.text("Not enough balance to raise bet!", NamedTextColor.RED));
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
                 return;
             }
             current = newAmount;
         } else {
-            current = Math.max(current - min, min);
+            current = Math.max(current - BET_STEP, min);
         }
 
         betAmounts.put(player.getUniqueId(), current);
@@ -143,10 +162,18 @@ public class SlotsMenu {
 
     // --- Item builders ---
 
-    private static ItemStack makeReel(String symbol) {
-        ItemStack item = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
+    private static ItemStack makeReel(SlotSymbol symbol) {
+        ItemStack item = new ItemStack(symbol.material());
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName("§f§l" + symbol);
+        meta.displayName(Component.text(symbol.name(), symbol.color()).decorate(TextDecoration.BOLD));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private static ItemStack makeUnrevealedReel() {
+        ItemStack item = new ItemStack(Material.DIAMOND);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(Component.text("???", NamedTextColor.YELLOW).decorate(TextDecoration.BOLD));
         item.setItemMeta(meta);
         return item;
     }
@@ -155,13 +182,28 @@ public class SlotsMenu {
         double bet = betAmounts.getOrDefault(player.getUniqueId(), plugin.getSlotsConfig().getMinBet());
         ItemStack item = new ItemStack(Material.LEVER);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName("§a§lSPIN!");
-        meta.setLore(List.of(
-                "§7Bet: §e" + String.format("%.1f", bet),
-                "",
-                "§7Left Click §8- §7Spin",
-                "§7Right Click §8- §7Decrease bet",
-                "§7Shift + Left §8- §7Increase bet"
+        meta.displayName(Component.text("SPIN!", NamedTextColor.GREEN).decorate(TextDecoration.BOLD));
+        meta.lore(List.of(
+                Component.text()
+                        .append(Component.text("Bet: ", NamedTextColor.GRAY))
+                        .append(Component.text(String.format("%.0f", bet), NamedTextColor.YELLOW))
+                        .build(),
+                Component.empty(),
+                Component.text()
+                        .append(Component.text("Left Click ", NamedTextColor.GRAY))
+                        .append(Component.text("- ", NamedTextColor.DARK_GRAY))
+                        .append(Component.text("Spin", NamedTextColor.GRAY))
+                        .build(),
+                Component.text()
+                        .append(Component.text("Right Click ", NamedTextColor.GRAY))
+                        .append(Component.text("- ", NamedTextColor.DARK_GRAY))
+                        .append(Component.text("Decrease bet", NamedTextColor.GRAY))
+                        .build(),
+                Component.text()
+                        .append(Component.text("Shift + Left ", NamedTextColor.GRAY))
+                        .append(Component.text("- ", NamedTextColor.DARK_GRAY))
+                        .append(Component.text("Increase bet", NamedTextColor.GRAY))
+                        .build()
         ));
         item.setItemMeta(meta);
         return item;
@@ -171,8 +213,8 @@ public class SlotsMenu {
         double balance = plugin.getCoreAPI().getEconomy().getBalance(player.getUniqueId());
         ItemStack item = new ItemStack(Material.GOLD_INGOT);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName("§6§lBalance");
-        meta.setLore(List.of("§e" + String.format("%.1f", balance)));
+        meta.displayName(Component.text("Balance", NamedTextColor.GOLD).decorate(TextDecoration.BOLD));
+        meta.lore(List.of(Component.text(String.format("%.0f", balance), NamedTextColor.YELLOW)));
         item.setItemMeta(meta);
         return item;
     }
@@ -181,16 +223,16 @@ public class SlotsMenu {
         double bet = betAmounts.getOrDefault(player.getUniqueId(), plugin.getSlotsConfig().getMinBet());
         ItemStack item = new ItemStack(Material.PAPER);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName("§b§lCurrent Bet");
-        meta.setLore(List.of("§e" + String.format("%.1f", bet)));
+        meta.displayName(Component.text("Current Bet", NamedTextColor.AQUA).decorate(TextDecoration.BOLD));
+        meta.lore(List.of(Component.text(String.format("%.0f", bet), NamedTextColor.YELLOW)));
         item.setItemMeta(meta);
         return item;
     }
 
-    private static ItemStack makePane(Material mat, String name) {
+    private static ItemStack makePane(Material mat, Component name) {
         ItemStack item = new ItemStack(mat);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(name);
+        meta.displayName(name);
         item.setItemMeta(meta);
         return item;
     }

@@ -7,11 +7,10 @@ import com.akito_sekuna.gambling.listeners.RouletteListener;
 import com.akito_sekuna.gambling.listeners.SlotsListener;
 import com.akito_sekuna.gambling.managers.ConfigManager;
 import com.akito_sekuna.gambling.managers.GameHistoryManager;
+import com.akito_sekuna.gambling.managers.GamesPlayedTracker;
 import com.akito_sekuna.gambling.roulette.RouletteCommand;
-import com.akito_sekuna.gambling.roulette.RouletteWheel;
 import com.akito_sekuna.gambling.slots.SlotsCommand;
 import com.akito_sekuna.gambling.slots.SlotsConfig;
-import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -25,6 +24,7 @@ public class Main extends JavaPlugin implements AkitosAddon {
     private ConfigManager configManager;
     private SlotsConfig slotsConfig;
     private GameHistoryManager historyManager;
+    private final GamesPlayedTracker gamesPlayedTracker = new GamesPlayedTracker();
 
     public static Main getInstance() { return instance; }
 
@@ -35,6 +35,7 @@ public class Main extends JavaPlugin implements AkitosAddon {
     public ConfigManager getConfigManager() { return configManager; }
     public SlotsConfig getSlotsConfig() { return slotsConfig; }
     public GameHistoryManager getHistoryManager() { return historyManager; }
+    public GamesPlayedTracker getGamesPlayedTracker() { return gamesPlayedTracker; }
     public ICoreAPI getCoreAPI() { return coreAPI; }
 
     // --- AkitosAddon ---
@@ -45,6 +46,7 @@ public class Main extends JavaPlugin implements AkitosAddon {
     @Override
     public void onCoreReady(ICoreAPI api) {
         this.coreAPI = api;
+        api.getMetrics().registerBarChart("games_played", gamesPlayedTracker::getAndReset);
     }
 
     @Override
@@ -70,29 +72,26 @@ public class Main extends JavaPlugin implements AkitosAddon {
         historyManager = new GameHistoryManager(this);
         slotsConfig = new SlotsConfig(configManager);
 
-        long sixHours = 432000L;
-        Bukkit.getScheduler().runTaskTimer(this, RouletteWheel::shuffleDisplay, sixHours, sixHours);
-
         PluginCommand agCmd = getCommand("akitosgambling");
         if (agCmd != null) {
             agCmd.setExecutor(new MainCommand(this));
             agCmd.setTabCompleter(new MainTabCompleter());
         } else {
-            getLogger().severe("Failed to register 'akitosgambling' command -- check plugin.yml!");
+            getLogger().severe("Failed to register 'akitosgambling' command, check plugin.yml!");
         }
 
         PluginCommand slotsCmd = getCommand("slots");
         if (slotsCmd != null) {
             slotsCmd.setExecutor(new SlotsCommand(this));
         } else {
-            getLogger().severe("Failed to register 'slots' command -- check plugin.yml!");
+            getLogger().severe("Failed to register 'slots' command, check plugin.yml!");
         }
 
         PluginCommand rouletteCmd = getCommand("roulette");
         if (rouletteCmd != null) {
             rouletteCmd.setExecutor(new RouletteCommand(this));
         } else {
-            getLogger().severe("Failed to register 'roulette' command -- check plugin.yml!");
+            getLogger().severe("Failed to register 'roulette' command, check plugin.yml!");
         }
 
         getServer().getPluginManager().registerEvents(new RouletteListener(this), this);

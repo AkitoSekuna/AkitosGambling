@@ -1,7 +1,8 @@
 package com.akito_sekuna.gambling.roulette;
 
 import com.akito_sekuna.gambling.Main;
-import com.akito_sekuna.gambling.slots.SlotsMenu;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -20,11 +21,11 @@ public class RouletteCommand implements CommandExecutor {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
                              @NotNull String label, @NotNull String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("This command can only be used by players!");
+            sender.sendMessage(Component.text("This command can only be used by players!"));
             return true;
         }
         if (plugin.getCoreAPI() == null) {
-            player.sendMessage("§cAkitosCore is not available. Try again in a moment.");
+            player.sendMessage(Component.text("AkitosCore is not available. Try again in a moment.", NamedTextColor.RED));
             return true;
         }
         RouletteMenu.open(player, plugin);

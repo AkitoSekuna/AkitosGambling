@@ -2,7 +2,7 @@
 # All keys below are read by ConfigManager.java. Restart or /ag reload after editing.
 
 slots:
-  min-bet: 5.0
+  min-bet: 4.0
   max-bet: 500.0
   cooldown-seconds: 3
 

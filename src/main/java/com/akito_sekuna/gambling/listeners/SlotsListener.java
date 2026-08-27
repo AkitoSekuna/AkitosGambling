@@ -2,6 +2,8 @@ package com.akito_sekuna.gambling.listeners;
 
 import com.akito_sekuna.gambling.Main;
 import com.akito_sekuna.gambling.slots.SlotsMenu;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -24,7 +26,7 @@ public class SlotsListener implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
-        if (!event.getView().getTitle().equals(SlotsMenu.TITLE)) return;
+        if (!event.getView().title().equals(SlotsMenu.TITLE)) return;
 
         event.setCancelled(true);
         ItemStack clicked = event.getCurrentItem();
@@ -38,7 +40,11 @@ public class SlotsListener implements Listener {
                     long cooldownMs = (long) plugin.getSlotsConfig().getCooldown() * 1000L;
                     if (cooldowns.containsKey(uuid) && now - cooldowns.get(uuid) < cooldownMs) {
                         long remaining = (cooldownMs - (now - cooldowns.get(uuid))) / 1000L + 1L;
-                        player.sendActionBar("§cWait §f" + remaining + "s §cbefore spinning again!");
+                        player.sendActionBar(Component.text()
+                                .append(Component.text("Wait ", NamedTextColor.RED))
+                                .append(Component.text(remaining + "s", NamedTextColor.WHITE))
+                                .append(Component.text(" before spinning again!", NamedTextColor.RED))
+                                .build());
                         return;
                     }
                     cooldowns.put(uuid, now);
@@ -54,7 +60,7 @@ public class SlotsListener implements Listener {
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
         if (!(event.getPlayer() instanceof Player player)) return;
-        if (!event.getView().getTitle().equals(SlotsMenu.TITLE)) return;
+        if (!event.getView().title().equals(SlotsMenu.TITLE)) return;
         cooldowns.remove(player.getUniqueId());
     }
 

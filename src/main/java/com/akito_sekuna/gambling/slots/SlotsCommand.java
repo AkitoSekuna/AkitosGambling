@@ -1,6 +1,7 @@
 package com.akito_sekuna.gambling.slots;
 
 import com.akito_sekuna.gambling.Main;
+import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -17,7 +18,7 @@ public class SlotsCommand implements CommandExecutor {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
                              @NotNull String label, @NotNull String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("This command can only be used by players!");
+            sender.sendMessage(Component.text("This command can only be used by players!"));
             return true;
         }
         SlotsMenu.open(player, plugin);

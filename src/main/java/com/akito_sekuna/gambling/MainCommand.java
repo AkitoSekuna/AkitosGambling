@@ -1,6 +1,9 @@
 package com.akito_sekuna.gambling;
 
 import com.akito_sekuna.gambling.utils.GameRecord;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -23,11 +26,11 @@ public class MainCommand implements CommandExecutor {
 
         if (args[0].equalsIgnoreCase("reload")) {
             if (!sender.hasPermission("akitosgambling.admin")) {
-                sender.sendMessage("§cYou don't have permission to do this!");
+                sender.sendMessage(Component.text("You don't have permission to do this!", NamedTextColor.RED));
                 return true;
             }
             plugin.getConfigManager().reload();
-            sender.sendMessage("§aAkitosGambling reloaded!");
+            sender.sendMessage(Component.text("AkitosGambling reloaded!", NamedTextColor.GREEN));
             return true;
         }
 
@@ -38,39 +41,75 @@ public class MainCommand implements CommandExecutor {
 
         if (args[0].equalsIgnoreCase("history")) {
             if (!sender.hasPermission("akitosgambling.admin")) {
-                sender.sendMessage("§cYou don't have permission to do this!");
+                sender.sendMessage(Component.text("You don't have permission to do this!", NamedTextColor.RED));
                 return true;
             }
-            if (args.length < 2) { sender.sendMessage("§cUsage: /ag history <player>"); return true; }
+            if (args.length < 2) {
+                sender.sendMessage(Component.text("Usage: /ag history <player>", NamedTextColor.RED));
+                return true;
+            }
             Player target = Bukkit.getPlayer(args[1]);
-            if (target == null) { sender.sendMessage("§cPlayer not found!"); return true; }
+            if (target == null) {
+                sender.sendMessage(Component.text("Player not found!", NamedTextColor.RED));
+                return true;
+            }
             List<GameRecord> history = plugin.getHistoryManager().getHistory(target.getUniqueId());
-            sender.sendMessage("§8--- §6" + target.getName() + "'s History §8---");
+            sender.sendMessage(Component.text()
+                    .append(Component.text("--- ", NamedTextColor.DARK_GRAY))
+                    .append(Component.text(target.getName() + "'s History", NamedTextColor.GOLD))
+                    .append(Component.text(" ---", NamedTextColor.DARK_GRAY))
+                    .build());
             if (history.isEmpty()) {
-                sender.sendMessage("§7No notable games recorded.");
+                sender.sendMessage(Component.text("No notable games recorded.", NamedTextColor.GRAY));
             } else {
                 for (GameRecord r : history) {
-                    String result = r.win() ? "§aWIN" : "§cLOSS";
-                    sender.sendMessage("§7" + r.gameType() + " §8| " + result + " §8| §7Bet: §f" + r.betAmount()
-                            + " §8| §7Payout: §f" + r.payout() + " §8| §7Ratio: §f" + String.format("%.1f", r.ratio()) + "x");
+                    Component result = r.win()
+                            ? Component.text("WIN", NamedTextColor.GREEN)
+                            : Component.text("LOSS", NamedTextColor.RED);
+                    sender.sendMessage(Component.text()
+                            .append(Component.text(r.gameType(), NamedTextColor.GRAY))
+                            .append(Component.text(" | ", NamedTextColor.DARK_GRAY))
+                            .append(result)
+                            .append(Component.text(" | ", NamedTextColor.DARK_GRAY))
+                            .append(Component.text("Bet: ", NamedTextColor.GRAY))
+                            .append(Component.text(r.betAmount(), NamedTextColor.WHITE))
+                            .append(Component.text(" | ", NamedTextColor.DARK_GRAY))
+                            .append(Component.text("Payout: ", NamedTextColor.GRAY))
+                            .append(Component.text(r.payout(), NamedTextColor.WHITE))
+                            .append(Component.text(" | ", NamedTextColor.DARK_GRAY))
+                            .append(Component.text("Ratio: ", NamedTextColor.GRAY))
+                            .append(Component.text(String.format("%.1f", r.ratio()) + "x", NamedTextColor.WHITE))
+                            .build());
                 }
             }
             if (plugin.getHistoryManager().isFlagged(target.getUniqueId())) {
-                sender.sendMessage("§c[FLAGGED: " + plugin.getHistoryManager().getFlagReason(target.getUniqueId()) + "]");
+                sender.sendMessage(Component.text(
+                        "[FLAGGED: " + plugin.getHistoryManager().getFlagReason(target.getUniqueId()) + "]",
+                        NamedTextColor.RED));
             }
             return true;
         }
 
         if (args[0].equalsIgnoreCase("unflag")) {
             if (!sender.hasPermission("akitosgambling.admin")) {
-                sender.sendMessage("§cYou don't have permission to do this!");
+                sender.sendMessage(Component.text("You don't have permission to do this!", NamedTextColor.RED));
                 return true;
             }
-            if (args.length < 2) { sender.sendMessage("§cUsage: /ag unflag <player>"); return true; }
+            if (args.length < 2) {
+                sender.sendMessage(Component.text("Usage: /ag unflag <player>", NamedTextColor.RED));
+                return true;
+            }
             Player target = Bukkit.getPlayer(args[1]);
-            if (target == null) { sender.sendMessage("§cPlayer not found!"); return true; }
+            if (target == null) {
+                sender.sendMessage(Component.text("Player not found!", NamedTextColor.RED));
+                return true;
+            }
             plugin.getHistoryManager().unflag(target.getUniqueId());
-            sender.sendMessage("§aUnflagged §f" + target.getName() + "§a.");
+            sender.sendMessage(Component.text()
+                    .append(Component.text("Unflagged ", NamedTextColor.GREEN))
+                    .append(Component.text(target.getName(), NamedTextColor.WHITE))
+                    .append(Component.text(".", NamedTextColor.GREEN))
+                    .build());
             return true;
         }
 
@@ -79,13 +118,31 @@ public class MainCommand implements CommandExecutor {
     }
 
     private void sendInfo(CommandSender sender) {
-        sender.sendMessage("§8--- §6AkitosGambling §8---");
-        sender.sendMessage("§7Version: §f" + plugin.getPluginMeta().getVersion());
-        sender.sendMessage("§7Author: §fAkito_Sekuna");
-        sender.sendMessage("§7/slots §8- §7Play slots");
-        sender.sendMessage("§7/roulette §8- §7Play roulette");
-        sender.sendMessage("§7/ag reload §8- §7Reload config");
-        sender.sendMessage("§7/ag history <player> §8- §7View player history");
-        sender.sendMessage("§7/ag unflag <player> §8- §7Unflag a player");
+        sender.sendMessage(Component.text()
+                .append(Component.text("--- ", NamedTextColor.DARK_GRAY))
+                .append(Component.text("AkitosGambling", NamedTextColor.GOLD))
+                .append(Component.text(" ---", NamedTextColor.DARK_GRAY))
+                .build());
+        sender.sendMessage(Component.text()
+                .append(Component.text("Version: ", NamedTextColor.GRAY))
+                .append(Component.text(plugin.getPluginMeta().getVersion(), NamedTextColor.WHITE))
+                .build());
+        sender.sendMessage(Component.text()
+                .append(Component.text("Author: ", NamedTextColor.GRAY))
+                .append(Component.text("Akito_Sekuna", NamedTextColor.WHITE))
+                .build());
+        sender.sendMessage(infoLine("/slots", "Play slots"));
+        sender.sendMessage(infoLine("/roulette", "Play roulette"));
+        sender.sendMessage(infoLine("/ag reload", "Reload config"));
+        sender.sendMessage(infoLine("/ag history <player>", "View player history"));
+        sender.sendMessage(infoLine("/ag unflag <player>", "Unflag a player"));
+    }
+
+    private Component infoLine(String command, String description) {
+        return Component.text()
+                .append(Component.text(command, NamedTextColor.GRAY))
+                .append(Component.text(" - ", NamedTextColor.DARK_GRAY))
+                .append(Component.text(description, NamedTextColor.GRAY))
+                .build();
     }
 }

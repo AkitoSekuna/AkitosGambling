@@ -1,15 +1,14 @@
 package com.akito_sekuna.gambling.roulette;
 
 public enum BetType {
-    RED("§cRed", "x2"),
-    BLACK("§8Black", "x2"),
-    GREEN("§aGreen", "x14"),
-    EVEN("§bEven", "x2"),
-    ODD("§dOdd", "x2"),
-    DOZEN_1("§e1st Dozen (1-12)", "x3"),
-    DOZEN_2("§e2nd Dozen (13-24)", "x3"),
-    DOZEN_3("§e3rd Dozen (25-36)", "x3"),
-    NUMBER("§fSingle Number", "x35");
+    RED("\u00a7cRed", "x2"),
+    BLACK("\u00a78Black", "x2"),
+    GREEN("\u00a7aGreen", "x10"),
+    EVEN("\u00a7bEven", "x2"),
+    ODD("\u00a7dOdd", "x2"),
+    DOZEN_1("\u00a7e1st Dozen (1-12)", "x2"),
+    DOZEN_2("\u00a7e2nd Dozen (13-24)", "x2"),
+    NUMBER("\u00a7fSingle Number", "x20");
 
     public final String displayName;
     public final String payout;

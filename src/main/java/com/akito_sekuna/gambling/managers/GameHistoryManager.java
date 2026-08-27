@@ -2,6 +2,8 @@ package com.akito_sekuna.gambling.managers;
 
 import com.akito_sekuna.gambling.Main;
 import com.akito_sekuna.gambling.utils.GameRecord;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -66,13 +68,15 @@ public class GameHistoryManager {
         flagTimestamps.remove(uuid);
     }
 
-    public String getFlaggedMessage(UUID uuid) {
+    public Component getFlaggedMessage(UUID uuid) {
         String reason = getFlagReason(uuid);
         List<String> messages = reason != null && reason.equals("WINNING_STREAK")
                 ? plugin.getConfigManager().getRaw().getStringList("anti-cheat.messages-flagged-winning")
                 : plugin.getConfigManager().getRaw().getStringList("anti-cheat.messages-flagged-losing");
-        if (messages.isEmpty()) return "§cThe casino is temporarily unavailable.";
-        return messages.get(random.nextInt(messages.size()));
+        String raw = messages.isEmpty()
+                ? "§cThe casino is temporarily unavailable."
+                : messages.get(random.nextInt(messages.size()));
+        return LegacyComponentSerializer.legacySection().deserialize(raw);
     }
 
     private synchronized void checkFlags(UUID uuid) {
