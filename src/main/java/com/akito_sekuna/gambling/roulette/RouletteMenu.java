@@ -222,6 +222,7 @@ public class RouletteMenu {
 
         if (payout > 0.0) {
             plugin.getCoreAPI().getEconomy().give(player.getUniqueId(), payout);
+            maybeGrantLudoman(player, bet, plugin);
             Component subtitle = resultSubtitle(result, colorTint, colorLabel, NamedTextColor.YELLOW, "+" + String.format("%.0f", payout));
             if (payout >= bet.amount() * 10.0) {
                 showTitle(player,
@@ -245,6 +246,18 @@ public class RouletteMenu {
         menu.setItem(31, makeBalanceItem(player, plugin));
         plugin.getGamesPlayedTracker().record("roulette");
         plugin.getHistoryManager().record(player.getUniqueId(), GameRecord.of("roulette", bet.amount(), payout));
+    }
+
+    private static void maybeGrantLudoman(Player player, RouletteBet bet, Main plugin) {
+        if (bet.type() != BetType.GREEN || bet.amount() < 500.0) {
+            return;
+        }
+        if (!Bukkit.getPluginManager().isPluginEnabled("LuckPerms")) {
+            plugin.getLogger().warning("Skipped granting 'ludoman' group to " + player.getName()
+                    + ": LuckPerms is not installed or not enabled.");
+            return;
+        }
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + player.getName() + " parent add ludoman");
     }
 
     private static Component resultSubtitle(RouletteNumber result, NamedTextColor colorTint, String colorLabel,
