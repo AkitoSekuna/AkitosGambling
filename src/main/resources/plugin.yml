@@ -1,5 +1,5 @@
 name: AkitosGambling
-version: 21.2.5
+version: 21.2.6
 main: com.akito_sekuna.gambling.Main
 api-version: '1.21'
 author: Akito_Sekuna
