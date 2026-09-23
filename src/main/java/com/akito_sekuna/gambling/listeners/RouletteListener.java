@@ -74,6 +74,26 @@ public class RouletteListener implements Listener {
         cooldowns.remove(player.getUniqueId());
     }
 
+    /**
+     * Refunds a player's active roulette wager if they disconnect mid spin.
+     *
+     * <p>{@link RouletteMenu#spin} takes the wager from the player's balance up front
+     * (before the wheel animation runs) and marks the player as spinning. If the player
+     * quits while {@link RouletteMenu#isSpinning} is still true for them, the spin never
+     * reaches {@code handleResult}, so no outcome, payout, ludoman grant, or game-history
+     * entry is ever produced for that spin. This refunds exactly the original wager
+     * ({@code bet.amount()}), restoring the pre-spin balance; it is not a payout
+     * calculation and ignores where the ball would have landed.
+     *
+     * <p>{@link RouletteMenu#clearAll} then drops the player's spinning flag, bet, bet
+     * amount, and bet-type index. The still-running {@code runTaskTimer} animation task
+     * (in {@code RouletteMenu#spin}) independently checks {@code player.isOnline()} each
+     * tick and cancels itself once the player is gone; that check only stops the
+     * animation, it does not refund again.
+     *
+     * <p>If the player quits with no active spin (no bet placed, or the spin already
+     * resolved), no refund happens; this only clears any leftover per-player state.
+     */
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
