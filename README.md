@@ -31,13 +31,11 @@ Casino-style gambling plugin for the Akitos network. Animated slot machine and r
 |---|---|---|
 | `/slots` | Open the slot machine | none |
 | `/roulette` | Open the roulette wheel | none |
-| `/ag` | Show plugin info | `akitosgambling.admin` |
-| `/ag info` | Show plugin info | `akitosgambling.admin` |
+| `/ag` | Show plugin info | none |
+| `/ag info` | Show plugin info | none |
 | `/ag reload` | Reload config | `akitosgambling.admin` |
 | `/ag history <player>` | View a player's notable game history | `akitosgambling.admin` |
 | `/ag unflag <player>` | Clear a player's win/loss-streak flag | `akitosgambling.admin` |
-
-`akitosgambling.admin` is set as the permission on the `/ag` command itself in `plugin.yml`, so it gates the whole command, including `info` and no-argument use, even though `MainCommand` only checks permission in code for `reload`/`history`/`unflag`. Everyday players only interact with the plugin through `/slots` and `/roulette`, which are unaffected.
 
 ## Permissions
 
