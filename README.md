@@ -14,7 +14,7 @@ Casino-style gambling plugin for the Akitos network. Animated slot machine and r
 1. Install AkitosCore and Vault first.
 2. Drop `AkitosGambling.jar` into your `plugins/` folder.
 3. Restart the server.
-4. Configure `plugins/AkitosPlugins/AkitosGambling/config.yml` if you want to change bet limits, cooldowns, or anti-cheat behavior.
+4. Configure `plugins/AkitosPlugins/AkitosGambling/config.yml` if you want to change bet limits, cooldowns, or the responsible-gaming protection settings.
 
 ## Features
 
@@ -22,8 +22,8 @@ Casino-style gambling plugin for the Akitos network. Animated slot machine and r
 - Animated roulette wheel with 8 bet types (red, black, green, even, odd, 1st/12/2nd dozen, single number)
 - Green roulette wins of 500+ grant the LuckPerms group `ludoman`, if LuckPerms is installed (silently skipped otherwise)
 - Roulette wager is refunded in full if a player disconnects mid-spin (see `RouletteListener.onQuit()`)
-- Win-streak and loss-streak detection that can temporarily flag a player, with admin override
-- Configurable bet limits, cooldowns, and (once added to config) anti-cheat thresholds
+- Win-streak and loss-streak detection that can temporarily flag a player, with admin override; a responsible-gaming safeguard rather than exploit detection
+- Configurable bet limits, cooldowns, and protection thresholds, either half can be disabled independently
 
 ## Commands
 
@@ -95,12 +95,12 @@ Higher weight means more common; all 8 always compete against each other (weight
 | Green (0/00) | x10 |
 | Single Number | x20 |
 
-### Anti-cheat thresholds
+### Responsible-gaming protection
 
-`GameHistoryManager` reads these directly from `config.yml` under an `anti-cheat:` section, but that section is not present in the shipped default config, so every server currently runs on these hardcoded fallbacks unless an admin adds the section manually:
+This is a safeguard for players and the server economy, not exploit detection: a losing-streak flag protects a player from chasing losses, a winning-streak flag protects the server economy from an improbable run of jackpot-tier payouts. `GameHistoryManager` reads these directly from `config.yml` under a `protection:` section:
 
 ```yaml
-anti-cheat:
+protection:
   notable-payout-multiplier: 3.0
   history-size: 10
   flag-win-streak: 5
@@ -111,6 +111,8 @@ anti-cheat:
 ```
 
 Only losses, and wins with a payout ratio at or above `notable-payout-multiplier`, are recorded to a player's history; `history-size` caps how many entries are kept. A run of `flag-win-streak` notable wins or `flag-loss-streak` losses in a row flags the player, blocking further spins until `flag-cooldown-hours` passes or an admin runs `/ag unflag`. The `messages-flagged-*` lists are shown to a flagged player at random; if empty, a default message is used.
+
+Setting `flag-win-streak` or `flag-loss-streak` to `0` or a negative number disables just that streak check; the other keeps working. Setting both disables player flagging entirely while still recording history.
 
 ## Part of the Akitos Plugin Network
 

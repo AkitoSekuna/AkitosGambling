@@ -31,10 +31,10 @@ public class GameHistoryManager {
     public void record(UUID uuid, GameRecord record) {
         synchronized (this) {
             List<GameRecord> history = getHistory(uuid);
-            double threshold = plugin.getConfigManager().getRaw().getDouble("anti-cheat.notable-payout-multiplier", 3.0);
+            double threshold = plugin.getConfigManager().getRaw().getDouble("protection.notable-payout-multiplier", 3.0);
             if (record.ratio() >= threshold || !record.win()) {
                 history.add(record);
-                int maxSize = plugin.getConfigManager().getRaw().getInt("anti-cheat.history-size", 10);
+                int maxSize = plugin.getConfigManager().getRaw().getInt("protection.history-size", 10);
                 while (history.size() > maxSize) history.remove(0);
             }
             cache.put(uuid, history);
@@ -50,7 +50,7 @@ public class GameHistoryManager {
     public synchronized boolean isFlagged(UUID uuid) {
         if (!flags.containsKey(uuid)) return false;
         long flagTime = flagTimestamps.getOrDefault(uuid, 0L);
-        long cooldownMs = plugin.getConfigManager().getRaw().getLong("anti-cheat.flag-cooldown-hours", 24L) * 3600000L;
+        long cooldownMs = plugin.getConfigManager().getRaw().getLong("protection.flag-cooldown-hours", 24L) * 3600000L;
         if (System.currentTimeMillis() - flagTime > cooldownMs) {
             flags.remove(uuid);
             flagTimestamps.remove(uuid);
@@ -71,19 +71,28 @@ public class GameHistoryManager {
     public Component getFlaggedMessage(UUID uuid) {
         String reason = getFlagReason(uuid);
         List<String> messages = reason != null && reason.equals("WINNING_STREAK")
-                ? plugin.getConfigManager().getRaw().getStringList("anti-cheat.messages-flagged-winning")
-                : plugin.getConfigManager().getRaw().getStringList("anti-cheat.messages-flagged-losing");
+                ? plugin.getConfigManager().getRaw().getStringList("protection.messages-flagged-winning")
+                : plugin.getConfigManager().getRaw().getStringList("protection.messages-flagged-losing");
         String raw = messages.isEmpty()
                 ? "§cThe casino is temporarily unavailable."
                 : messages.get(random.nextInt(messages.size()));
         return LegacyComponentSerializer.legacySection().deserialize(raw);
     }
 
+    /**
+     * Checks a player's recent history for a win or loss streak and flags them if found.
+     *
+     * <p>This is a responsible-gaming safeguard, not exploit detection: a loss streak flag
+     * protects the player from chasing losses, a win streak flag protects the server's
+     * economy from an improbable run of jackpot-tier payouts. Either threshold can be
+     * turned off independently by setting it to 0 or a negative number in config.yml,
+     * which disables just that streak check without touching the other one.
+     */
     private synchronized void checkFlags(UUID uuid) {
         List<GameRecord> history = getHistory(uuid);
-        int winStreak = plugin.getConfigManager().getRaw().getInt("anti-cheat.flag-win-streak", 5);
-        int lossStreak = plugin.getConfigManager().getRaw().getInt("anti-cheat.flag-loss-streak", 10);
-        double threshold = plugin.getConfigManager().getRaw().getDouble("anti-cheat.notable-payout-multiplier", 3.0);
+        int winStreak = plugin.getConfigManager().getRaw().getInt("protection.flag-win-streak", 5);
+        int lossStreak = plugin.getConfigManager().getRaw().getInt("protection.flag-loss-streak", 10);
+        double threshold = plugin.getConfigManager().getRaw().getDouble("protection.notable-payout-multiplier", 3.0);
         int consecutiveLosses = 0;
         int consecutiveWins = 0;
         for (int i = history.size() - 1; i >= 0; --i) {
@@ -92,10 +101,10 @@ public class GameHistoryManager {
             else if (r.ratio() >= threshold) { ++consecutiveWins; consecutiveLosses = 0; }
             else break;
         }
-        if (consecutiveWins >= winStreak) {
+        if (winStreak > 0 && consecutiveWins >= winStreak) {
             flags.put(uuid, "WINNING_STREAK");
             flagTimestamps.put(uuid, System.currentTimeMillis());
-        } else if (consecutiveLosses >= lossStreak) {
+        } else if (lossStreak > 0 && consecutiveLosses >= lossStreak) {
             flags.put(uuid, "LOSING_STREAK");
             flagTimestamps.put(uuid, System.currentTimeMillis());
         }

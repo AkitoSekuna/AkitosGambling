@@ -1,5 +1,7 @@
 # AkitosGambling configuration
-# All keys below are read by ConfigManager.java. Restart or /ag reload after editing.
+# Restart or /ag reload after editing.
+# slots/roulette keys below are read by ConfigManager.java.
+# protection keys are read directly from this file by GameHistoryManager.java.
 
 slots:
   min-bet: 4.0
@@ -11,3 +13,26 @@ roulette:
   max-bet: 1000.0
   cooldown-seconds: 6
   spin-duration-seconds: 5
+
+# Responsible-gaming safeguard, not anti-cheat. Temporarily locks a player out of
+# /slots and /roulette after a losing streak (protects the player) or an improbable
+# winning streak (protects the server economy). An admin can lift a flag early with
+# /ag unflag <player>; it also clears itself after flag-cooldown-hours.
+protection:
+  # Only losses, and wins paying out at least this many times the bet, count toward
+  # a streak. Small routine wins are ignored.
+  notable-payout-multiplier: 3.0
+  # How many recent notable games are kept per player.
+  history-size: 10
+  # Consecutive notable wins before a player is flagged. Set to 0 or a negative
+  # number to disable win-streak flagging without affecting loss-streak flagging.
+  flag-win-streak: 5
+  # Consecutive losses before a player is flagged. Set to 0 or a negative number to
+  # disable loss-streak flagging without affecting win-streak flagging.
+  flag-loss-streak: 10
+  # How long a flag lasts before it clears itself.
+  flag-cooldown-hours: 24
+  # Shown at random when a flagged player tries to play. Falls back to a default
+  # message if empty.
+  messages-flagged-winning: []
+  messages-flagged-losing: []
